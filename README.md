@@ -1,68 +1,70 @@
 # Jenkins with Docker Compose
 
-This repository contains a simple Docker Compose setup to run Jenkins using the official LTS image. It is based on the [official Jenkins documentation](https://www.jenkins.io/doc/book/installing/docker/).
+This repository contains a Docker Compose setup to run Jenkins using the official LTS image. It includes instructions for setting up a production-ready environment with Nginx and SSL.
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) installed on your machine.
-- [Docker Compose](https://docs.docker.com/compose/install/) installed (usually included with Docker Desktop).
+- [Docker](https://docs.docker.com/get-docker/) installed.
+- [Docker Compose](https://docs.docker.com/compose/install/) installed.
+- A registered domain name (for production setup).
 
-## Getting Started
+## Quick Start
 
-1.  Clone this repository:
+1.  **Clone the repository:**
     ```bash
     git clone https://github.com/techie829-oss/jenkins-compose.git
     cd jenkins-compose
     ```
 
-2.  Start the Jenkins container in detached mode:
+2.  **Start Jenkins:**
     ```bash
     docker-compose up -d
     ```
 
-## Post-installation Setup
+3.  **Unlock Jenkins:**
+    - Browse to `http://localhost:8080` (or `http://<your-server-ip>:8080`).
+    - Get the initial password:
+      ```bash
+      docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      ```
+    - Paste the password to unlock Jenkins.
 
-### 1. Unlock Jenkins
+## Production Setup Guide (Step-by-Step)
 
-When you first access a new Jenkins instance, you are asked to unlock it using an automatically-generated password.
+This guide assumes you are a **non-root user** with `sudo` privileges.
 
-1.  Browse to `http://localhost:8080` and wait until the **Unlock Jenkins** page appears.
-2.  Retrieve the initial administrator password from the container logs or by running the following command:
+### Step 1: Verify Initial Access
+Before setting up a domain, ensure Jenkins is running and accessible via your server's IP:
+`http://<your-server-ip>:8080`
+
+### Step 2: Nginx Reverse Proxy Setup
+
+#### Check if Nginx is installed
+Run the following command to check:
+```bash
+nginx -v
+```
+
+**Scenario A: Nginx is NOT installed**
+Install it using:
+```bash
+sudo apt update
+sudo apt install -y nginx
+```
+
+**Scenario B: Nginx is already installed**
+Proceed to configuration.
+
+#### Configure Nginx
+1.  Create a configuration file for Jenkins:
     ```bash
-    docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+    sudo nano /etc/nginx/sites-available/jenkins
     ```
-3.  Copy the password and paste it into the **Administrator password** field.
-
-### 2. Customize Jenkins and Create Admin User
-
-- Select **Install suggested plugins** to get a standard set of plugins.
-- Create your first administrator user when prompted.
-- Confirm the **Instance Configuration** (URL).
-
-## Production Setup & Best Practices
-
-### 🔐 HTTPS / Reverse Proxy Setup
-
-For production environments, it is highly recommended to run Jenkins behind a reverse proxy like Nginx or Traefik with HTTPS enabled.
-
-#### Nginx Example
-
-1.  Install Nginx and Certbot on your host machine.
-2.  Create an Nginx configuration file (e.g., `/etc/nginx/sites-available/jenkins`):
-
+2.  Paste the following configuration (replace `jenkins.yourdomain.com` with your actual domain):
     ```nginx
     server {
         listen 80;
         server_name jenkins.yourdomain.com;
-        return 301 https://$host$request_uri;
-    }
-
-    server {
-        listen 443 ssl;
-        server_name jenkins.yourdomain.com;
-
-        ssl_certificate /etc/letsencrypt/live/jenkins.yourdomain.com/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/jenkins.yourdomain.com/privkey.pem;
 
         location / {
             proxy_pass http://127.0.0.1:8080;
@@ -73,50 +75,71 @@ For production environments, it is highly recommended to run Jenkins behind a re
         }
     }
     ```
-3.  Replace `jenkins.yourdomain.com` with your actual domain.
+3.  Enable the site and restart Nginx:
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/jenkins /etc/nginx/sites-enabled/
+    sudo nginx -t
+    sudo systemctl restart nginx
+    ```
 
-### ⚠️ Set Jenkins Root URL
+### Step 3: SSL Setup (Certbot)
 
-After setting up your reverse proxy and logging in for the first time:
+Secure your domain with a free Let's Encrypt certificate.
 
-1.  Go to **Manage Jenkins** -> **System**.
-2.  Locate the **Jenkins URL** field.
-3.  Set it to your public URL (e.g., `https://jenkins.yourdomain.com/`).
-4.  Click **Save**.
-
-This ensures that links in emails and notifications point to the correct public address.
-
-## Configuration Details
-
-- **Port 8080**: Mapped to the host for accessing the Jenkins UI.
-- **Port 50000**: Mapped for inbound Jenkins agent connections.
-- **Volume**: A named volume `jenkins-data` is used to persist Jenkins data (`/var/jenkins_home`).
-
-### 🔁 Optional: Docker in Jenkins Pipelines
-
-If you need to build Docker images within your Jenkins pipelines, you can mount the host's Docker socket. Update your `docker-compose.yml` to include:
-
-```yaml
-services:
-  jenkins:
-    ...
-    volumes:
-      - jenkins-data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    ...
+#### Check if Certbot is installed
+Run:
+```bash
+certbot --version
 ```
 
-**Note:** This grants the Jenkins container full access to your host's Docker daemon, which has security implications.
+**Scenario A: Certbot is NOT installed**
+Install Certbot and the Nginx plugin:
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+```
 
-## Managing the Service
+**Scenario B: Certbot is already installed**
+Proceed to generating the certificate.
 
-- **Stop the service**:
+#### Generate Certificate
+Run Certbot to automatically configure SSL:
+```bash
+sudo certbot --nginx -d jenkins.yourdomain.com
+```
+Follow the prompts to redirect HTTP traffic to HTTPS.
+
+### Step 4: Final Jenkins Configuration
+
+1.  Log in to Jenkins using your new domain: `https://jenkins.yourdomain.com`.
+2.  Go to **Manage Jenkins** -> **System**.
+3.  Scroll down to **Jenkins Location**.
+4.  Update **Jenkins URL** to `https://jenkins.yourdomain.com/`.
+5.  Click **Save**.
+
+## Data Persistence & Management
+
+- **Data Safety**: Jenkins data is stored in a Docker volume named `jenkins-data`. 
+- **Stopping Jenkins**:
   ```bash
   docker-compose down
   ```
-  *Note: This removes the containers but preserves the `jenkins-data` volume, so your configuration and build history remain safe.*
+  *This stops and removes containers but **KEEPS** your data safe in the volume.*
 
-- **View logs**:
+- **Viewing Logs**:
   ```bash
   docker-compose logs -f
   ```
+
+### Optional: Permissions for Docker Pipelines
+If your Jenkins jobs need to run Docker commands (e.g., building images), you can mount the host's Docker socket.
+
+**⚠️ Warning:** This grants root-level access to the host.
+
+Update `docker-compose.yml`:
+```yaml
+services:
+  jenkins:
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+```
