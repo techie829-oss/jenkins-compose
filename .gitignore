@@ -5,3 +5,46 @@ dist/
 .idea/
 .vscode/
 *.log
+# Environment variables
+.env
+
+# Backup files
+backups/
+*.tar.gz
+*.zip
+
+# Docker volumes (handled by Docker)
+jenkins-data/
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Jenkins home (if accidentally created locally)
+jenkins_home/
+
+# SSL certificates (if stored locally)
+*.pem
+*.crt
+*.key
+certs/
+
+# Node modules (if using any JS tools)
+node_modules/
