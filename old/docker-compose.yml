@@ -2,24 +2,21 @@ version: '3.8'
 
 services:
   jenkins:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: myjenkins-blueocean:2.541.1-1
+    image: jenkins/jenkins:lts
     container_name: jenkins
-    restart: on-failure
+    user: root
     ports:
       - "${JENKINS_PORT:-8080}:8080"
       - "${JENKINS_AGENT_PORT:-50000}:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
-      # Alternative for Configuration as Code
-      # - ./jenkins-casc.yaml:/var/jenkins_home/casc.yaml:ro
+      # SECURITY WARNING: Uncomment only if absolutely necessary
+      # This grants root-level access to Docker host
+      # - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - JAVA_OPTS=${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true"}
+      - JAVA_OPTS=${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true -Dhudson.footerURL=https://jenkins.yourdomain.com"}
       - TZ=${TZ:-UTC}
-      # Uncomment if using JCasC
-      # - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+    restart: unless-stopped
     dns:
       - 8.8.8.8
       - 1.1.1.1

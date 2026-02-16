@@ -1,10 +1,10 @@
 version: '3.8'
 
-# Official Jenkins Docker-in-Docker setup
-# Based on: https://www.jenkins.io/doc/book/installing/docker/
+# Docker-in-Docker setup for secure Docker builds
+# This avoids mounting the host Docker socket
 
 services:
-  docker:
+  docker-dind:
     image: docker:dind
     container_name: jenkins-docker
     privileged: true
@@ -13,42 +13,41 @@ services:
         aliases:
           - docker
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      DOCKER_TLS_CERTDIR: /certs
     volumes:
       - jenkins-docker-certs:/certs/client
       - jenkins-data:/var/jenkins_home
     ports:
       - "2376:2376"
-    command: --storage-driver overlay2
+    command: --storage-driver=overlay2
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   jenkins:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: myjenkins-blueocean:2.541.1-1
-    container_name: jenkins-blueocean
-    restart: on-failure
-    depends_on:
-      - docker
+    image: jenkins/jenkins:lts
+    container_name: jenkins
     networks:
       - jenkins
     environment:
-      - DOCKER_HOST=tcp://docker:2376
-      - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1
-      - JAVA_OPTS=${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true"}
-      - TZ=${TZ:-UTC}
-      # Uncomment if using JCasC
-      # - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+      DOCKER_HOST: tcp://docker:2376
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_TLS_VERIFY: 1
+      JAVA_OPTS: ${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true"}
+      TZ: ${TZ:-UTC}
     ports:
       - "${JENKINS_PORT:-8080}:8080"
       - "${JENKINS_AGENT_PORT:-50000}:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client:ro
-      # Alternative for Configuration as Code
-      # - ./jenkins-casc.yaml:/var/jenkins_home/casc.yaml:ro
+    depends_on:
+      docker-dind:
+        condition: service_healthy
+    restart: unless-stopped
     dns:
       - 8.8.8.8
       - 1.1.1.1

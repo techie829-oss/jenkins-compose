@@ -2,8 +2,6 @@
 
 This repository contains a Docker Compose setup to run Jenkins using the official LTS image. It includes instructions for setting up a production-ready environment with Nginx and SSL.
 
-> 📁 **Project Structure**: See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for complete file organization and descriptions.
-
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) installed (v20.10.0 or later with Docker Compose plugin)
@@ -13,10 +11,6 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
 > **Note:** This guide uses `docker compose` (Docker Compose V2) which comes bundled with modern Docker installations. If you're using the standalone `docker compose` tool, replace `docker compose` with `docker compose` in all commands.
 
 ## Quick Start
-
-> **Note:** This setup is domain-independent. You can configure your domain later. See [DOMAIN_SETUP.md](DOMAIN_SETUP.md) for details.
->
-> **Setup Options:** We provide two setups - Simple (no Docker builds) and Docker-in-Docker (with Docker builds). See [SETUP_OPTIONS.md](SETUP_OPTIONS.md) for detailed comparison.
 
 1. **Verify Docker installation:**
    ```bash
@@ -40,34 +34,12 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
    cd jenkins-compose
    ```
 
-3. **Build the custom Jenkins image:**
-   ```bash
-   # This builds Jenkins with Docker CLI and Blue Ocean pre-installed
-   docker compose build
-   
-   # For Docker-in-Docker setup, use:
-   # docker compose -f docker-compose-dind.yml build
-   ```
-
-4. **Start Jenkins:**
-   
-   **Option A - Automated (Recommended):**
-   ```bash
-   ./start.sh
-   ```
-   This script will:
-   - Check prerequisites
-   - Create .env file if needed
-   - Start Jenkins
-   - Display the initial admin password
-   - Show access URLs
-   
-   **Option B - Manual:**
+3. **Start Jenkins:**
    ```bash
    docker compose up -d
    ```
 
-5. **Unlock Jenkins:**
+4. **Unlock Jenkins:**
    - Browse to `http://localhost:8080` (or `http://<your-server-ip>:8080`)
    - Get the initial password:
      ```bash
@@ -75,7 +47,7 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
      ```
    - Paste the password to unlock Jenkins
    
-6. **Install recommended plugins:**
+5. **Install recommended plugins:**
    - Choose "Install suggested plugins" or select:
      - Git
      - Pipeline
@@ -222,18 +194,11 @@ sudo systemctl status certbot.timer
 
 ### Step 6: Final Jenkins Configuration
 
-> **Detailed Instructions:** See [DOMAIN_SETUP.md](DOMAIN_SETUP.md) for multiple configuration methods.
-
-**Quick Method (Web UI):**
-
 1. Log in to Jenkins: `https://jenkins.yourdomain.com`
 2. Go to **Manage Jenkins** → **System**
 3. Scroll to **Jenkins Location**
 4. Update **Jenkins URL** to `https://jenkins.yourdomain.com/`
-5. Update **System Admin e-mail address**
-6. Click **Save**
-
-**Alternative:** Use Configuration as Code (JCasC) for automated setup - see DOMAIN_SETUP.md for details.
+5. Click **Save**
 
 ## Data Persistence & Management
 
@@ -272,7 +237,7 @@ Mount the host Docker socket to run Docker commands in Jenkins.
 
 **⚠️ WARNING:** This grants Jenkins **root-level access** to your host system.
 
-Update `docker compose.yml`:
+Update `docker-compose.yml`:
 ```yaml
 services:
   jenkins:
@@ -283,10 +248,10 @@ services:
 
 ### Option 2: Docker-in-Docker (Recommended for Production)
 
-Use the `docker compose-dind.yml` file for isolated Docker builds:
+Use the `docker-compose-dind.yml` file for isolated Docker builds:
 
 ```bash
-docker compose -f docker compose-dind.yml up -d
+docker compose -f docker-compose-dind.yml up -d
 ```
 
 This setup:
