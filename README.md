@@ -2,7 +2,7 @@
 
 This repository contains a Docker Compose setup to run Jenkins using the official LTS image. It includes instructions for setting up a production-ready environment with Nginx and SSL.
 
-> 📁 **Project Structure**: See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for complete file organization and descriptions.
+> 📁 **Project Structure**: See [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for complete file organization and descriptions.
 
 ## Prerequisites
 
@@ -14,9 +14,9 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
 
 ## Quick Start
 
-> **Note:** This setup is domain-independent. You can configure your domain later. See [DOMAIN_SETUP.md](DOMAIN_SETUP.md) for details.
+> **Note:** This setup is domain-independent. You can configure your domain later. See [DOMAIN_SETUP.md](docs/DOMAIN_SETUP.md) for details.
 >
-> **Setup Options:** We provide two setups - Simple (no Docker builds) and Docker-in-Docker (with Docker builds). See [SETUP_OPTIONS.md](SETUP_OPTIONS.md) for detailed comparison.
+> **Setup Options:** We provide two setups - Simple (no Docker builds) and Docker-in-Docker (with Docker builds). See [SETUP_OPTIONS.md](docs/SETUP_OPTIONS.md) for detailed comparison.
 
 1. **Verify Docker installation:**
    ```bash
@@ -27,7 +27,7 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
    docker compose version
    ```
    
-   > If `docker compose version` fails, you might have the older standalone version. Run `docker-compose version` instead, or see [DOCKER_COMPOSE_V2.md](DOCKER_COMPOSE_V2.md) for migration info.
+   > If `docker compose version` fails, you might have the older standalone version. Run `docker-compose version` instead, or see [DOCKER_COMPOSE_V2.md](docs/DOCKER_COMPOSE_V2.md) for migration info.
    >
    > **Alternative:** Use the included `compose.sh` wrapper that automatically detects your version:
    > ```bash
@@ -222,7 +222,7 @@ sudo systemctl status certbot.timer
 
 ### Step 6: Final Jenkins Configuration
 
-> **Detailed Instructions:** See [DOMAIN_SETUP.md](DOMAIN_SETUP.md) for multiple configuration methods.
+> **Detailed Instructions:** See [DOMAIN_SETUP.md](docs/DOMAIN_SETUP.md) for multiple configuration methods.
 
 **Quick Method (Web UI):**
 

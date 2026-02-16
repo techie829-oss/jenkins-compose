@@ -16,14 +16,15 @@ This document outlines the file organization of the Jenkins Docker Compose repos
 - **`backup.sh`**: Script to backup Jenkins data volume to a tarball.
 - **`restore.sh`**: Script to restore Jenkins data volume from a backup tarball.
 
-## Documentation
+## Documentation (in `docs/`)
 
-- **`README.md`**: Main documentation and quick start guide.
+- **`README.md`**: Main documentation and quick start guide (in root).
 - **`SETUP_OPTIONS.md`**: Comparison and guide for different setup options (Simple vs DinD).
 - **`DOMAIN_SETUP.md`**: Detailed guide for setting up a custom domain with Nginx and SSL.
 - **`COMPLIANCE_CHECKLIST.md`**: Security and operational checklist for production deployments.
 - **`DOCKER_COMPOSE_V2.md`**: Migration guide and differences between Docker Compose V1 and V2.
+- **`PROJECT_STRUCTURE.md`**: This file.
 
 ## Directories
 
-- **`old/`**: specific old configurations or backups (should be cleaned up in production).
+- **`docs/`**: Documentation files.
