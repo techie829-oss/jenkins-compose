@@ -4,25 +4,42 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) installed
-- [Docker Compose](https://docs.docker.com/compose/install/) installed
+- [Docker](https://docs.docker.com/get-docker/) installed (v20.10.0 or later with Docker Compose plugin)
 - A registered domain name (for production setup)
 - Basic knowledge of Linux command line
 
+> **Note:** This guide uses `docker compose` (Docker Compose V2) which comes bundled with modern Docker installations. If you're using the standalone `docker compose` tool, replace `docker compose` with `docker compose` in all commands.
+
 ## Quick Start
 
-1. **Clone the repository:**
+1. **Verify Docker installation:**
+   ```bash
+   # Check Docker version
+   docker --version
+   
+   # Check Docker Compose version (should show V2.x.x)
+   docker compose version
+   ```
+   
+   > If `docker compose version` fails, you might have the older standalone version. Run `docker-compose version` instead, or see [DOCKER_COMPOSE_V2.md](DOCKER_COMPOSE_V2.md) for migration info.
+   >
+   > **Alternative:** Use the included `compose.sh` wrapper that automatically detects your version:
+   > ```bash
+   > ./compose.sh version  # Works with both V1 and V2
+   > ```
+
+2. **Clone the repository:**
    ```bash
    git clone https://github.com/techie829-oss/jenkins-compose.git
    cd jenkins-compose
    ```
 
-2. **Start Jenkins:**
+3. **Start Jenkins:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
-3. **Unlock Jenkins:**
+4. **Unlock Jenkins:**
    - Browse to `http://localhost:8080` (or `http://<your-server-ip>:8080`)
    - Get the initial password:
      ```bash
@@ -30,7 +47,7 @@ This repository contains a Docker Compose setup to run Jenkins using the officia
      ```
    - Paste the password to unlock Jenkins
    
-4. **Install recommended plugins:**
+5. **Install recommended plugins:**
    - Choose "Install suggested plugins" or select:
      - Git
      - Pipeline
@@ -194,22 +211,22 @@ sudo systemctl status certbot.timer
 
 **Stop Jenkins (keeps data):**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 **Start Jenkins:**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 **View logs:**
 ```bash
-docker-compose logs -f jenkins
+docker compose logs -f jenkins
 ```
 
 **Restart Jenkins:**
 ```bash
-docker-compose restart jenkins
+docker compose restart jenkins
 ```
 
 ## Docker Integration Options
@@ -220,7 +237,7 @@ Mount the host Docker socket to run Docker commands in Jenkins.
 
 **⚠️ WARNING:** This grants Jenkins **root-level access** to your host system.
 
-Update `docker-compose.yml`:
+Update `docker compose.yml`:
 ```yaml
 services:
   jenkins:
@@ -231,10 +248,10 @@ services:
 
 ### Option 2: Docker-in-Docker (Recommended for Production)
 
-Use the `docker-compose-dind.yml` file for isolated Docker builds:
+Use the `docker compose-dind.yml` file for isolated Docker builds:
 
 ```bash
-docker-compose -f docker-compose-dind.yml up -d
+docker compose -f docker compose-dind.yml up -d
 ```
 
 This setup:
@@ -249,7 +266,7 @@ This setup:
 
 ```bash
 # Stop Jenkins gracefully
-docker-compose down
+docker compose down
 
 # Backup volume to compressed archive
 docker run --rm \
@@ -258,7 +275,7 @@ docker run --rm \
   ubuntu tar czf /backup/jenkins-backup-$(date +%Y%m%d).tar.gz /data
 
 # Restart Jenkins
-docker-compose up -d
+docker compose up -d
 ```
 
 **Schedule automated backups with cron:**
@@ -267,14 +284,14 @@ docker-compose up -d
 crontab -e
 
 # Add daily backup at 2 AM (adjust path as needed)
-0 2 * * * cd /path/to/jenkins-compose && docker-compose down && docker run --rm -v jenkins-data:/data -v $(pwd):/backup ubuntu tar czf /backup/jenkins-backup-$(date +\%Y\%m\%d).tar.gz /data && docker-compose up -d
+0 2 * * * cd /path/to/jenkins-compose && docker compose down && docker run --rm -v jenkins-data:/data -v $(pwd):/backup ubuntu tar czf /backup/jenkins-backup-$(date +\%Y\%m\%d).tar.gz /data && docker compose up -d
 ```
 
 ### Restore from Backup
 
 ```bash
 # Stop and remove old data
-docker-compose down
+docker compose down
 docker volume rm jenkins-data
 
 # Create fresh volume
@@ -287,7 +304,7 @@ docker run --rm \
   ubuntu tar xzf /backup/jenkins-backup-YYYYMMDD.tar.gz -C /
 
 # Start Jenkins
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Updates & Maintenance
@@ -299,11 +316,11 @@ docker-compose up -d
 # See Backup section above
 
 # Pull latest image
-docker-compose pull
+docker compose pull
 
 # Recreate container with new image
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 ### Check Versions
@@ -332,7 +349,7 @@ Regularly update plugins through Jenkins UI:
 
 **Symptom:** Plugins won't install, marketplace unavailable
 
-**Solution:** Add DNS servers to `docker-compose.yml`:
+**Solution:** Add DNS servers to `docker compose.yml`:
 ```yaml
 services:
   jenkins:
@@ -343,8 +360,8 @@ services:
 
 Then restart:
 ```bash
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 ### Permission denied errors
@@ -353,10 +370,10 @@ docker-compose up -d
 
 **Solution:** Reset volume permissions:
 ```bash
-docker-compose down
+docker compose down
 docker volume rm jenkins-data
 docker volume create jenkins-data
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Nginx 502 Bad Gateway
@@ -388,7 +405,7 @@ docker-compose up -d
 
 **Check logs:**
 ```bash
-docker-compose logs jenkins
+docker compose logs jenkins
 ```
 
 **Common causes:**
@@ -415,7 +432,7 @@ sudo certbot renew --force-renewal
 
 ### Jenkins performance issues
 
-**Increase Java heap size** in `docker-compose.yml`:
+**Increase Java heap size** in `docker compose.yml`:
 ```yaml
 environment:
   - JAVA_OPTS=-Xms512m -Xmx2048m -Djenkins.install.runSetupWizard=true
@@ -468,7 +485,7 @@ unclassified:
     url: "https://jenkins.yourdomain.com/"
 ```
 
-Mount this in docker-compose:
+Mount this in docker compose:
 ```yaml
 volumes:
   - jenkins-data:/var/jenkins_home
