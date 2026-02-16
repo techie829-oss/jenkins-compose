@@ -36,11 +36,11 @@ services:
       DOCKER_HOST: tcp://docker:2376
       DOCKER_CERT_PATH: /certs/client
       DOCKER_TLS_VERIFY: 1
-      JAVA_OPTS: -Djenkins.install.runSetupWizard=true
-      TZ: UTC
+      JAVA_OPTS: ${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true"}
+      TZ: ${TZ:-UTC}
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "${JENKINS_PORT:-8080}:8080"
+      - "${JENKINS_AGENT_PORT:-50000}:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
       - jenkins-docker-certs:/certs/client:ro

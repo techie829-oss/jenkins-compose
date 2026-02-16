@@ -237,7 +237,7 @@ Mount the host Docker socket to run Docker commands in Jenkins.
 
 **⚠️ WARNING:** This grants Jenkins **root-level access** to your host system.
 
-Update `docker compose.yml`:
+Update `docker-compose.yml`:
 ```yaml
 services:
   jenkins:
@@ -248,10 +248,10 @@ services:
 
 ### Option 2: Docker-in-Docker (Recommended for Production)
 
-Use the `docker compose-dind.yml` file for isolated Docker builds:
+Use the `docker-compose-dind.yml` file for isolated Docker builds:
 
 ```bash
-docker compose -f docker compose-dind.yml up -d
+docker compose -f docker-compose-dind.yml up -d
 ```
 
 This setup:

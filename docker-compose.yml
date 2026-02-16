@@ -1,20 +1,38 @@
-version: "3.8"
+version: '3.8'
 
 services:
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
-    restart: always
-    environment:
-      - JAVA_OPTS=${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true"}
-      - TJ=${TJ:-UTC}
+    user: root
     ports:
-      - "${JENKINS_PORT:-8080}:8080"     # internal Jenkins UI
-      - "${JENKINS_AGENT_PORT:-50000}:50000"   # agent connections
+      - "${JENKINS_PORT:-8080}:8080"
+      - "${JENKINS_AGENT_PORT:-50000}:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
-      # - /var/run/docker.sock:/var/run/docker.sock # Optional: Mount Docker socket for building images
+      # SECURITY WARNING: Uncomment only if absolutely necessary
+      # This grants root-level access to Docker host
+      # - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=${JENKINS_OPTS:-"-Djenkins.install.runSetupWizard=true -Dhudson.footerURL=https://jenkins.yourdomain.com"}
+      - TZ=${TZ:-UTC}
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/login || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - jenkins
+
+networks:
+  jenkins:
+    driver: bridge
 
 volumes:
   jenkins-data:
-
+    driver: local
